@@ -1,51 +1,39 @@
 # HIBIKI: Hierarchical Instruction Binding for Image Key-token Intervention
 
-HIBIKI 是一个面向 ComfyUI 的自定义节点原型，目标是通过语法化区域提示减少多目标生成中的概念漂移。
+A ComfyUI custom node that mitigates concept drift (attribute leakage) in multi-subject Stable Diffusion generation by patching cross-attention at the token level.
 
-## 语法说明
+## Syntax
 
-基本格式：
+```
+global description, {subjectA | attrA1, attrA2, ...}, {subjectB | attrB1, attrB2, ...}, ...
+```
 
-`全局描述, {局部文本 | x, y, width, height}`
+## Example
 
-示例：
+Vanilla Stable Diffusion struggles to assign distinct attributes to multiple subjects. For instance, the following prompt:
 
-`A beautiful street, {a man in a red shirt | 0,0,512,512}, {a woman in a blue dress | 512,0,512,512}`
+```
+1boy, black hair, very long hair, blue eyes, sitting,
+1girl, white hair, short hair, yellow eyes, standing,
+blank background, white background, masterpiece, 8k, high quality, best quality, absurd resolution, very awa
+```
 
-说明：
-- 全局描述：不在 `{}` 内的文本
-- 局部描述：`{text | x,y,w,h}`
-- 坐标单位：像素坐标（节点内部会按 8 对齐用于 area）
+Conflicting attributes (hair colour, hair length, eye colour, pose) are randomly distributed across the two subjects. Both images below were generated directly from this prompt:
 
-## 节点说明
+| Without HIBIKI | Without HIBIKI |
+|:-:|:-:|
+| ![](./samples/not_applied/ComfyUI_temp_knxqi_00005_.png) | ![](./samples/not_applied/ComfyUI_temp_knxqi_00007_.png) |
 
-节点名：`HIBIKI Regional Prompter`  
-节点 ID：`HIBIKIRegionalPrompter`
+After applying HIBIKI's syntax and attention patching (only the special brackets were added to the same prompt):
 
-输入：
-- `text` (`STRING`)
-- `clip` (`CLIP`)
-- `strength` (`FLOAT`, 可选，默认 `1.0`)
-- `set_cond_area` (`default` / `mask bounds`, 可选)
-- `image_width` (`INT`, 可选，默认 `0`)
-- `image_height` (`INT`, 可选，默认 `0`)
-- `mask_blur_radius` (`INT`, 可选，默认 `0`)
-- `mask_blur_sigma` (`FLOAT`, 可选，默认 `1.0`)
+```
+{1boy | black hair, very long hair, blue eyes, sitting},
+{1girl | white hair, short hair, yellow eyes, standing},
+blank background, white background, masterpiece, 8k, high quality, best quality, absurd resolution, very awa
+```
 
-输出：
-- `CONDITIONING`
+The probability of generating correctly attributed subjects increases significantly:
 
-关于 `image_width` / `image_height`：
-- 两者都大于 0 时，节点会使用该尺寸生成画布（并按 8 对齐）
-- 任一为 0 时，节点根据局部框自动推断画布尺寸
-
-关于软边界：
-- `mask_blur_radius > 0` 时启用高斯模糊（soft mask）
-- 推荐起步：`mask_blur_radius=8`、`mask_blur_sigma=4.0`
-
-## 接入 ComfyUI
-
-1. 将本项目（或 `hibiki` 目录）放入 ComfyUI 的 `custom_nodes` 可加载位置。  
-2. 重启 ComfyUI。  
-3. 在节点搜索中输入 `HIBIKI Regional Prompter`。  
-4. 将输出连接到 `KSampler` 的 `positive` 端进行采样测试。
+| With HIBIKI | With HIBIKI |
+|:-:|:-:|
+| ![](./samples/applied_hibiki/ComfyUI_temp_knxqi_00001_.png) | ![](./samples/applied_hibiki/ComfyUI_temp_knxqi_00003_.png) |
