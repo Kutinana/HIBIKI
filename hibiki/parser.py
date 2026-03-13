@@ -38,7 +38,12 @@ def _parse_box(raw_box: str) -> List[int]:
     return [int(p) for p in parts]
 
 
-def _parse_grid_box(raw_grid: str, canvas_width: int, canvas_height: int) -> List[int]:
+def _parse_grid_box(
+    raw_grid: str,
+    canvas_width: int,
+    canvas_height: int,
+    overlap_ratio: float = 0.0,
+) -> List[int]:
     if canvas_width <= 0 or canvas_height <= 0:
         raise ValueError("grid syntax requires canvas_width and canvas_height > 0")
 
@@ -75,6 +80,16 @@ def _parse_grid_box(raw_grid: str, canvas_width: int, canvas_height: int) -> Lis
     x1 = (canvas_width * (col + 1)) // cols
     y1 = (canvas_height * (row + 1)) // rows
 
+    if overlap_ratio > 0.0:
+        cell_w = max(1, x1 - x0)
+        cell_h = max(1, y1 - y0)
+        dx = int(round(cell_w * overlap_ratio))
+        dy = int(round(cell_h * overlap_ratio))
+        x0 = max(0, x0 - dx)
+        y0 = max(0, y0 - dy)
+        x1 = min(canvas_width, x1 + dx)
+        y1 = min(canvas_height, y1 + dy)
+
     return [x0, y0, x1 - x0, y1 - y0]
 
 
@@ -83,6 +98,7 @@ def parse_hibiki_prompt(
     strict: bool = True,
     canvas_width: int = 0,
     canvas_height: int = 0,
+    grid_overlap_ratio: float = 0.0,
 ) -> ParseResult:
     """
     Parse syntax like:
@@ -120,7 +136,12 @@ def parse_hibiki_prompt(
 
         try:
             if "grid:" in box_part.lower():
-                box = _parse_grid_box(box_part, canvas_width=canvas_width, canvas_height=canvas_height)
+                box = _parse_grid_box(
+                    box_part,
+                    canvas_width=canvas_width,
+                    canvas_height=canvas_height,
+                    overlap_ratio=float(grid_overlap_ratio),
+                )
             else:
                 box = _parse_box(box_part)
         except ValueError as exc:
@@ -142,6 +163,13 @@ if __name__ == "__main__":
     result = parse_hibiki_prompt(demo_prompt, strict=True)
     grid_prompt = "A scene, {a dog | grid: 1x2, pos: 1}, {a cat | grid: 1x2, pos: 2}"
     grid_result = parse_hibiki_prompt(grid_prompt, strict=True, canvas_width=1024, canvas_height=512)
+    grid_overlap_result = parse_hibiki_prompt(
+        grid_prompt,
+        strict=True,
+        canvas_width=1024,
+        canvas_height=512,
+        grid_overlap_ratio=0.1,
+    )
 
     print("Input:", demo_prompt)
     print("Global:", result.global_text)
@@ -152,5 +180,8 @@ if __name__ == "__main__":
     print("---")
     print("Grid Input:", grid_prompt)
     for i, region in enumerate(grid_result.regions, start=1):
+        print(f"  {i}. text={region.text!r}, box={region.box}, span={region.span}")
+    print("Grid Input (overlap=0.1):", grid_prompt)
+    for i, region in enumerate(grid_overlap_result.regions, start=1):
         print(f"  {i}. text={region.text!r}, box={region.box}, span={region.span}")
 
