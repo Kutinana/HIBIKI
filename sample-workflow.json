@@ -1,0 +1,532 @@
+{
+  "id": "b620a18e-8d4f-48f8-8b02-364f49796759",
+  "revision": 0,
+  "last_node_id": 11,
+  "last_link_id": 33,
+  "nodes": [
+    {
+      "id": 7,
+      "type": "VAEDecode",
+      "pos": [
+        1493.353204783501,
+        622.5229582116779
+      ],
+      "size": [
+        140,
+        46
+      ],
+      "flags": {},
+      "order": 7,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "samples",
+          "type": "LATENT",
+          "link": 9
+        },
+        {
+          "name": "vae",
+          "type": "VAE",
+          "link": 10
+        }
+      ],
+      "outputs": [
+        {
+          "name": "IMAGE",
+          "type": "IMAGE",
+          "links": [
+            11
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.16.3",
+        "Node name for S&R": "VAEDecode"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 5,
+      "type": "CLIPTextEncode",
+      "pos": [
+        587.3406041079978,
+        911.5027185349517
+      ],
+      "size": [
+        400,
+        200
+      ],
+      "flags": {},
+      "order": 2,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 4
+        }
+      ],
+      "outputs": [
+        {
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "links": [
+            6
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.16.3",
+        "Node name for S&R": "CLIPTextEncode"
+      },
+      "widgets_values": [
+        "split image, collage, diptych, two panels, abstract blocks, disjoint composition, duplicate animals, floating body parts, (watermark, signature, text:1.5), error, ugly, bad proportions, nsfw, explicit, nude"
+      ],
+      "color": "#322",
+      "bgcolor": "#533"
+    },
+    {
+      "id": 8,
+      "type": "PreviewImage",
+      "pos": [
+        1689.5338308057794,
+        624.9650406932832
+      ],
+      "size": [
+        263.5413627057899,
+        301.6547723080539
+      ],
+      "flags": {},
+      "order": 8,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "images",
+          "type": "IMAGE",
+          "link": 11
+        }
+      ],
+      "outputs": [],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.16.3",
+        "Node name for S&R": "PreviewImage"
+      },
+      "widgets_values": []
+    },
+    {
+      "id": 1,
+      "type": "KSampler",
+      "pos": [
+        1183.9081680307154,
+        609.4369765294756
+      ],
+      "size": [
+        270,
+        262
+      ],
+      "flags": {},
+      "order": 5,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 32
+        },
+        {
+          "name": "positive",
+          "type": "CONDITIONING",
+          "link": 33
+        },
+        {
+          "name": "negative",
+          "type": "CONDITIONING",
+          "link": 6
+        },
+        {
+          "name": "latent_image",
+          "type": "LATENT",
+          "link": 3
+        }
+      ],
+      "outputs": [
+        {
+          "name": "LATENT",
+          "type": "LATENT",
+          "links": [
+            9
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.16.3",
+        "Node name for S&R": "KSampler"
+      },
+      "widgets_values": [
+        329045998238255,
+        "randomize",
+        30,
+        5,
+        "euler_ancestral",
+        "normal",
+        1
+      ]
+    },
+    {
+      "id": 4,
+      "type": "EmptyLatentImage",
+      "pos": [
+        713.5148656575965,
+        1173.6195715605656
+      ],
+      "size": [
+        270,
+        106
+      ],
+      "flags": {},
+      "order": 0,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "LATENT",
+          "type": "LATENT",
+          "links": [
+            3
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.16.3",
+        "Node name for S&R": "EmptyLatentImage"
+      },
+      "widgets_values": [
+        832,
+        1216,
+        1
+      ],
+      "color": "#323",
+      "bgcolor": "#535"
+    },
+    {
+      "id": 2,
+      "type": "CheckpointLoaderSimple",
+      "pos": [
+        111.1345201949978,
+        531.351878898419
+      ],
+      "size": [
+        270,
+        98
+      ],
+      "flags": {},
+      "order": 1,
+      "mode": 0,
+      "inputs": [],
+      "outputs": [
+        {
+          "name": "MODEL",
+          "type": "MODEL",
+          "links": [
+            13
+          ]
+        },
+        {
+          "name": "CLIP",
+          "type": "CLIP",
+          "links": [
+            4,
+            7,
+            17
+          ]
+        },
+        {
+          "name": "VAE",
+          "type": "VAE",
+          "links": [
+            10
+          ]
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.16.3",
+        "Node name for S&R": "CheckpointLoaderSimple"
+      },
+      "widgets_values": [
+        "il\\kokioIllu_v20.safetensors"
+      ]
+    },
+    {
+      "id": 6,
+      "type": "CLIPTextEncode",
+      "pos": [
+        581.642411650919,
+        656.7121129541498
+      ],
+      "size": [
+        400,
+        200
+      ],
+      "flags": {},
+      "order": 3,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 7
+        }
+      ],
+      "outputs": [
+        {
+          "name": "CONDITIONING",
+          "type": "CONDITIONING",
+          "links": []
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfy-core",
+        "ver": "0.16.3",
+        "Node name for S&R": "CLIPTextEncode"
+      },
+      "widgets_values": [
+        "1boy, black hair, very long hair, blue eyes, sitting, 1girl, white hair, short hair, yellow eyes, standing, blank background, white background, masterpiece, 8k, high quality, best quality, absurd resolution, very awa"
+      ],
+      "color": "#232",
+      "bgcolor": "#353"
+    },
+    {
+      "id": 9,
+      "type": "HIBIKIAttentionPatcher",
+      "pos": [
+        586.1478739360577,
+        167.2007582731188
+      ],
+      "size": [
+        390.25010796727133,
+        388
+      ],
+      "flags": {},
+      "order": 4,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "link": 13
+        },
+        {
+          "name": "clip",
+          "type": "CLIP",
+          "link": 17
+        }
+      ],
+      "outputs": [
+        {
+          "name": "model",
+          "type": "MODEL",
+          "links": [
+            32
+          ]
+        },
+        {
+          "name": "conditioning",
+          "type": "CONDITIONING",
+          "links": [
+            33
+          ]
+        },
+        {
+          "name": "flattened_text",
+          "type": "STRING",
+          "links": []
+        },
+        {
+          "name": "token_map_json",
+          "type": "STRING",
+          "links": [
+            20
+          ]
+        }
+      ],
+      "properties": {
+        "Node name for S&R": "HIBIKIAttentionPatcher"
+      },
+      "widgets_values": [
+        " {1boy | black hair, very long hair, blue eyes, sitting}, {1girl | white hair, short hair, yellow eyes, standing}, blank background, white background, masterpiece, 8k, high quality, best quality, absurd resolution, very awa",
+        0,
+        1,
+        -30,
+        0.45,
+        4,
+        1.5,
+        -4,
+        true,
+        true,
+        true
+      ],
+      "color": "#223",
+      "bgcolor": "#335"
+    },
+    {
+      "id": 10,
+      "type": "ShowText|pysssss",
+      "pos": [
+        1184.1282920715896,
+        155.0437297960691
+      ],
+      "size": [
+        564.28708474307,
+        366.80350752053107
+      ],
+      "flags": {},
+      "order": 6,
+      "mode": 0,
+      "inputs": [
+        {
+          "name": "text",
+          "type": "STRING",
+          "link": 20
+        }
+      ],
+      "outputs": [
+        {
+          "name": "STRING",
+          "shape": 6,
+          "type": "STRING",
+          "links": null
+        }
+      ],
+      "properties": {
+        "cnr_id": "comfyui-custom-scripts",
+        "ver": "1.2.5",
+        "Node name for S&R": "ShowText|pysssss"
+      },
+      "widgets_values": [
+        "{\"groups\": [{\"anchor_text\": \"1boy\", \"attribute_texts\": [\"black hair\", \"very long hair\", \"blue eyes\", \"sitting\"], \"anchor_idx\": [24, 25], \"attribute_indices\": [[27, 28], [30, 31, 32], [34, 35], [37]]}, {\"anchor_text\": \"1girl\", \"attribute_texts\": [\"white hair\", \"short hair\", \"yellow eyes\", \"standing\"], \"anchor_idx\": [39, 40], \"attribute_indices\": [[42, 43], [45, 46], [48, 49], [51]]}]}"
+      ]
+    }
+  ],
+  "links": [
+    [
+      3,
+      4,
+      0,
+      1,
+      3,
+      "LATENT"
+    ],
+    [
+      4,
+      2,
+      1,
+      5,
+      0,
+      "CLIP"
+    ],
+    [
+      6,
+      5,
+      0,
+      1,
+      2,
+      "CONDITIONING"
+    ],
+    [
+      7,
+      2,
+      1,
+      6,
+      0,
+      "CLIP"
+    ],
+    [
+      9,
+      1,
+      0,
+      7,
+      0,
+      "LATENT"
+    ],
+    [
+      10,
+      2,
+      2,
+      7,
+      1,
+      "VAE"
+    ],
+    [
+      11,
+      7,
+      0,
+      8,
+      0,
+      "IMAGE"
+    ],
+    [
+      13,
+      2,
+      0,
+      9,
+      0,
+      "MODEL"
+    ],
+    [
+      17,
+      2,
+      1,
+      9,
+      1,
+      "CLIP"
+    ],
+    [
+      20,
+      9,
+      3,
+      10,
+      0,
+      "STRING"
+    ],
+    [
+      32,
+      9,
+      0,
+      1,
+      0,
+      "MODEL"
+    ],
+    [
+      33,
+      9,
+      1,
+      1,
+      1,
+      "CONDITIONING"
+    ]
+  ],
+  "groups": [],
+  "config": {},
+  "extra": {
+    "workflowRendererVersion": "LG",
+    "ds": {
+      "scale": 0.9229599817707119,
+      "offset": [
+        -22.713416575006526,
+        9.811523888330818
+      ]
+    },
+    "frontendVersion": "1.39.19",
+    "VHS_latentpreview": false,
+    "VHS_latentpreviewrate": 0,
+    "VHS_MetadataImage": true,
+    "VHS_KeepIntermediate": true
+  },
+  "version": 0.4
+}
