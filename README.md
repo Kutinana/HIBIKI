@@ -58,7 +58,7 @@ HIBIKI replaces the cross-attention function in all transformer blocks of the U-
 
 #### Step 1 — BPE-Level Token Mapping
 
-The user prompt is parsed into anchor groups $\lbrace(a_g, \mathcal{T}_g)\rbrace_{g=1}^{G}$, where $a_g$ is the anchor subject and $\mathcal{T}_g$ is its set of attribute tokens.  To resolve the prompt text to exact BPE token positions, HIBIKI tokenises each segment independently and locates its BPE subsequence within the full tokenised prompt via linear scan.  This avoids known `word_id` misalignment issues in CLIP's tokeniser and guarantees correctness even under sub-word merging.
+The user prompt is parsed into anchor groups. To resolve the prompt text to exact BPE token positions, HIBIKI tokenises each segment independently and locates its BPE subsequence within the full tokenised prompt via linear scan.
 
 #### Step 2 — Per-Group Z-Scored Region Assignment
 
@@ -96,21 +96,17 @@ Within each group's **rival** zone:
 
 Within the **neutral** zone, all scores are left untouched, preserving the model's native compositional reasoning for background elements and global context.
 
-**Adaptive boost scaling.**  A fixed per-token boost causes attribute dilution when many attributes are present: $k$ boosted tokens each contribute $\sim e^{\beta}$ in the softmax numerator, collectively consuming a share that grows with $k$ and squeezes out structural tokens.  HIBIKI compensates by scaling the per-token boost as:
+**Adaptive boost scaling.**  A fixed per-token boost causes attribute dilution when many attributes are present: $k$ boosted tokens each contribute $\sim e^{\beta}$ in the softmax numerator, collectively consuming a share that grows with $k$ and squeezes out structural tokens. HIBIKI compensates by scaling the per-token boost as:
 
 $$
 \beta_{\text{attr}}^{(g)} = \beta_{\text{base}} + \ln\frac{k_{\text{ref}}}{k_g}
 $$
 
-where $k_g = |\mathcal{T}_g|$ is the number of attribute tokens for group $g$ and $k_{\text{ref}} = 2$ is a reference count.  This ensures the **collective** softmax share of all attribute tokens in a group remains approximately constant (~60–65%) regardless of how many attributes are specified, because:
+This ensures the collective softmax share of all attribute tokens in a group remains approximately constant (~60–65%) regardless of how many attributes are specified, because:
 
 $$
 k_g \cdot e^{\beta_{\text{attr}}^{(g)}} = k_g \cdot e^{\beta_{\text{base}}} \cdot \frac{k_{\text{ref}}}{k_g} = k_{\text{ref}} \cdot e^{\beta_{\text{base}}} = \text{const}
 $$
-
-#### Step 4 — Selective Layer Application
-
-Cross-attention at high spatial resolutions (e.g. 64×64, 128×128) primarily governs fine textures and edges, not semantic attributes like colour or pose.  Computing the full $N \times L$ attention matrix at these resolutions is also disproportionately expensive (memory scales as $O(N \cdot L \cdot H)$) and bypasses hardware-fused FlashAttention kernels.  HIBIKI therefore optionally skips patching for layers where $N > N_{\text{max}}$ (default 4096, i.e. above 64×64), falling back to the native optimised attention kernel with zero overhead.
 
 ### Compatibility
 
