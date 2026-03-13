@@ -23,6 +23,8 @@ class HIBIKIRegionalPrompter:
             "optional": {
                 "strength": ("FLOAT", {"default": 1.0, "min": 0.0, "max": 10.0, "step": 0.01}),
                 "set_cond_area": (["default", "mask bounds"],),
+                "image_width": ("INT", {"default": 0, "min": 0, "max": 16384, "step": 8}),
+                "image_height": ("INT", {"default": 0, "min": 0, "max": 16384, "step": 8}),
             },
         }
 
@@ -46,7 +48,30 @@ class HIBIKIRegionalPrompter:
         height = ((max_y + 7) // 8) * 8
         return width, height
 
-    def build_conditioning(self, text, clip, strength=1.0, set_cond_area="default"):
+    def _resolve_canvas_size(self, regions, image_width=0, image_height=0):
+        if image_width > 0 and image_height > 0:
+            width = max(64, ((int(image_width) + 7) // 8) * 8)
+            height = max(64, ((int(image_height) + 7) // 8) * 8)
+            return width, height
+        return self._infer_canvas_size(regions)
+
+    def _clamp_box(self, box, canvas_w, canvas_h):
+        x, y, w, h = [int(v) for v in box]
+        x0 = max(0, min(x, canvas_w))
+        y0 = max(0, min(y, canvas_h))
+        x1 = max(0, min(x + max(0, w), canvas_w))
+        y1 = max(0, min(y + max(0, h), canvas_h))
+        return x0, y0, max(0, x1 - x0), max(0, y1 - y0)
+
+    def build_conditioning(
+        self,
+        text,
+        clip,
+        strength=1.0,
+        set_cond_area="default",
+        image_width=0,
+        image_height=0,
+    ):
         parsed = parse_hibiki_prompt(text, strict=False)
         out = []
 
@@ -58,13 +83,15 @@ class HIBIKIRegionalPrompter:
                 return (out,)
             return (self._encode_text(clip, text),)
 
-        canvas_w, canvas_h = self._infer_canvas_size(parsed.regions)
+        canvas_w, canvas_h = self._resolve_canvas_size(
+            parsed.regions, image_width=image_width, image_height=image_height
+        )
         set_area_to_bounds = set_cond_area != "default"
 
         for region in parsed.regions:
-            x, y, w, h = region.box
+            x, y, w, h = self._clamp_box(region.box, canvas_w, canvas_h)
             region_cond = self._encode_text(clip, region.text)
-            region_mask = generate_mask(region.box, canvas_w, canvas_h)
+            region_mask = generate_mask([x, y, w, h], canvas_w, canvas_h)
 
             values = {
                 "area": (h // 8, w // 8, y // 8, x // 8),
