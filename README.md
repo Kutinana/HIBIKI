@@ -23,6 +23,8 @@ Conflicting attributes (hair colour, hair length, eye colour, pose) are randomly
 | Without HIBIKI | Without HIBIKI |
 |:-:|:-:|
 | ![](./samples/not_applied/ComfyUI_temp_knxqi_00005_.png) | ![](./samples/not_applied/ComfyUI_temp_knxqi_00007_.png) |
+| Boy: black short hair, yellow eyes, standing | Boy: white short hair, blue eyes, sitting |
+| Girl: white long hair, blue eyes, sitting | Girl: black long hair, yellow eyes, standing |
 
 After applying HIBIKI's syntax and attention patching (only the special brackets were added to the same prompt):
 
@@ -36,4 +38,4 @@ The probability of generating correctly attributed subjects increases significan
 
 | With HIBIKI | With HIBIKI |
 |:-:|:-:|
-| ![](./samples/applied_hibiki/ComfyUI_temp_knxqi_00001_.png) | ![](./samples/applied_hibiki/ComfyUI_temp_knxqi_00003_.png) |
+| ![](./samples/applied_hibiki/ComfyUI_temp_knxqi_00009_.png) | ![](./samples/applied_hibiki/ComfyUI_temp_knxqi_00003_.png) |
