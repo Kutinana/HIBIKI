@@ -25,6 +25,8 @@ class HIBIKIRegionalPrompter:
                 "set_cond_area": (["default", "mask bounds"],),
                 "image_width": ("INT", {"default": 0, "min": 0, "max": 16384, "step": 8}),
                 "image_height": ("INT", {"default": 0, "min": 0, "max": 16384, "step": 8}),
+                "mask_blur_radius": ("INT", {"default": 0, "min": 0, "max": 128, "step": 1}),
+                "mask_blur_sigma": ("FLOAT", {"default": 1.0, "min": 0.1, "max": 32.0, "step": 0.1}),
             },
         }
 
@@ -71,8 +73,23 @@ class HIBIKIRegionalPrompter:
         set_cond_area="default",
         image_width=0,
         image_height=0,
+        mask_blur_radius=0,
+        mask_blur_sigma=1.0,
     ):
-        parsed = parse_hibiki_prompt(text, strict=False)
+        has_grid_syntax = "grid:" in text.lower()
+        if has_grid_syntax and (int(image_width) <= 0 or int(image_height) <= 0):
+            raise ValueError("grid syntax requires image_width and image_height inputs")
+
+        if has_grid_syntax:
+            canvas_w, canvas_h = self._resolve_canvas_size([], image_width=image_width, image_height=image_height)
+            parsed = parse_hibiki_prompt(
+                text,
+                strict=False,
+                canvas_width=canvas_w,
+                canvas_height=canvas_h,
+            )
+        else:
+            parsed = parse_hibiki_prompt(text, strict=False)
         out = []
 
         if parsed.global_text:
@@ -83,15 +100,24 @@ class HIBIKIRegionalPrompter:
                 return (out,)
             return (self._encode_text(clip, text),)
 
-        canvas_w, canvas_h = self._resolve_canvas_size(
-            parsed.regions, image_width=image_width, image_height=image_height
-        )
+        if has_grid_syntax:
+            canvas_w, canvas_h = self._resolve_canvas_size([], image_width=image_width, image_height=image_height)
+        else:
+            canvas_w, canvas_h = self._resolve_canvas_size(
+                parsed.regions, image_width=image_width, image_height=image_height
+            )
         set_area_to_bounds = set_cond_area != "default"
 
         for region in parsed.regions:
             x, y, w, h = self._clamp_box(region.box, canvas_w, canvas_h)
             region_cond = self._encode_text(clip, region.text)
-            region_mask = generate_mask([x, y, w, h], canvas_w, canvas_h)
+            region_mask = generate_mask(
+                [x, y, w, h],
+                canvas_w,
+                canvas_h,
+                blur_radius=int(mask_blur_radius),
+                blur_sigma=float(mask_blur_sigma),
+            )
 
             values = {
                 "area": (h // 8, w // 8, y // 8, x // 8),

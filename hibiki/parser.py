@@ -38,7 +38,52 @@ def _parse_box(raw_box: str) -> List[int]:
     return [int(p) for p in parts]
 
 
-def parse_hibiki_prompt(prompt: str, strict: bool = True) -> ParseResult:
+def _parse_grid_box(raw_grid: str, canvas_width: int, canvas_height: int) -> List[int]:
+    if canvas_width <= 0 or canvas_height <= 0:
+        raise ValueError("grid syntax requires canvas_width and canvas_height > 0")
+
+    kv_pairs = {}
+    for part in raw_grid.split(","):
+        if ":" not in part:
+            continue
+        key, value = part.split(":", 1)
+        kv_pairs[key.strip().lower()] = value.strip().lower()
+
+    grid_value = kv_pairs.get("grid")
+    pos_value = kv_pairs.get("pos")
+    if grid_value is None or pos_value is None:
+        raise ValueError("grid syntax must include both 'grid' and 'pos'")
+
+    grid_match = re.fullmatch(r"(\d+)\s*[xX]\s*(\d+)", grid_value)
+    if not grid_match:
+        raise ValueError("grid must use format rowsxcols, e.g. 1x2")
+
+    rows = int(grid_match.group(1))
+    cols = int(grid_match.group(2))
+    pos = int(pos_value)
+    if rows <= 0 or cols <= 0:
+        raise ValueError("grid rows and cols must be positive")
+    if pos < 1 or pos > rows * cols:
+        raise ValueError(f"pos must be within [1, {rows * cols}]")
+
+    index = pos - 1
+    row = index // cols
+    col = index % cols
+
+    x0 = (canvas_width * col) // cols
+    y0 = (canvas_height * row) // rows
+    x1 = (canvas_width * (col + 1)) // cols
+    y1 = (canvas_height * (row + 1)) // rows
+
+    return [x0, y0, x1 - x0, y1 - y0]
+
+
+def parse_hibiki_prompt(
+    prompt: str,
+    strict: bool = True,
+    canvas_width: int = 0,
+    canvas_height: int = 0,
+) -> ParseResult:
     """
     Parse syntax like:
         A street, {a cat | 0,0,256,256}
@@ -74,7 +119,10 @@ def parse_hibiki_prompt(prompt: str, strict: bool = True) -> ParseResult:
             continue
 
         try:
-            box = _parse_box(box_part)
+            if "grid:" in box_part.lower():
+                box = _parse_grid_box(box_part, canvas_width=canvas_width, canvas_height=canvas_height)
+            else:
+                box = _parse_box(box_part)
         except ValueError as exc:
             if strict:
                 raise
@@ -92,6 +140,8 @@ def parse_hibiki_prompt(prompt: str, strict: bool = True) -> ParseResult:
 if __name__ == "__main__":
     demo_prompt = "A street, {a cat | 0,0,256,256}"
     result = parse_hibiki_prompt(demo_prompt, strict=True)
+    grid_prompt = "A scene, {a dog | grid: 1x2, pos: 1}, {a cat | grid: 1x2, pos: 2}"
+    grid_result = parse_hibiki_prompt(grid_prompt, strict=True, canvas_width=1024, canvas_height=512)
 
     print("Input:", demo_prompt)
     print("Global:", result.global_text)
@@ -99,4 +149,8 @@ if __name__ == "__main__":
     for i, region in enumerate(result.regions, start=1):
         print(f"  {i}. text={region.text!r}, box={region.box}, span={region.span}")
     print("Errors:", result.errors)
+    print("---")
+    print("Grid Input:", grid_prompt)
+    for i, region in enumerate(grid_result.regions, start=1):
+        print(f"  {i}. text={region.text!r}, box={region.box}, span={region.span}")
 
