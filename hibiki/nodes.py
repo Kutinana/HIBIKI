@@ -1,5 +1,5 @@
 from .mask_generator import generate_mask
-from .parser import parse_syntax
+from .parser import parse_hibiki_prompt
 
 
 def _set_values(conditioning, values):
@@ -12,7 +12,7 @@ def _set_values(conditioning, values):
     return out
 
 
-class SyntaxRegionalPrompter:
+class HIBIKIRegionalPrompter:
     @classmethod
     def INPUT_TYPES(cls):
         return {
@@ -42,13 +42,12 @@ class SyntaxRegionalPrompter:
             x, y, w, h = region.box
             max_x = max(max_x, x + max(0, w))
             max_y = max(max_y, y + max(0, h))
-        # Match area node assumptions: multiples of 8.
         width = ((max_x + 7) // 8) * 8
         height = ((max_y + 7) // 8) * 8
         return width, height
 
     def build_conditioning(self, text, clip, strength=1.0, set_cond_area="default"):
-        parsed = parse_syntax(text, strict=False)
+        parsed = parse_hibiki_prompt(text, strict=False)
         out = []
 
         if parsed.global_text:
@@ -80,9 +79,10 @@ class SyntaxRegionalPrompter:
 
 
 NODE_CLASS_MAPPINGS = {
-    "SyntaxRegionalPrompter": SyntaxRegionalPrompter,
+    "HIBIKIRegionalPrompter": HIBIKIRegionalPrompter,
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "SyntaxRegionalPrompter": "Syntax Regional Prompter",
+    "HIBIKIRegionalPrompter": "HIBIKI Regional Prompter",
 }
+

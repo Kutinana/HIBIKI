@@ -32,23 +32,16 @@ def _parse_box(raw_box: str) -> List[int]:
     if len(parts) != 4:
         raise ValueError(f"box must contain 4 values, got {len(parts)}")
     try:
-        x, y, w, h = [int(p) for p in parts]
+        _, _, _, _ = [int(p) for p in parts]
     except ValueError as exc:
         raise ValueError("box values must be integers") from exc
-    return [x, y, w, h]
+    return [int(p) for p in parts]
 
 
-def parse_syntax(prompt: str, strict: bool = True) -> ParseResult:
+def parse_hibiki_prompt(prompt: str, strict: bool = True) -> ParseResult:
     """
     Parse syntax like:
         A street, {a cat | 0,0,256,256}
-
-    Returns:
-        ParseResult(
-            global_text="A street",
-            regions=[RegionSpec(text="a cat", box=[0,0,256,256], span=(...,...))],
-            errors=[]
-        )
     """
     if not isinstance(prompt, str):
         raise TypeError("prompt must be a string")
@@ -98,7 +91,7 @@ def parse_syntax(prompt: str, strict: bool = True) -> ParseResult:
 
 if __name__ == "__main__":
     demo_prompt = "A street, {a cat | 0,0,256,256}"
-    result = parse_syntax(demo_prompt, strict=True)
+    result = parse_hibiki_prompt(demo_prompt, strict=True)
 
     print("Input:", demo_prompt)
     print("Global:", result.global_text)
@@ -106,3 +99,4 @@ if __name__ == "__main__":
     for i, region in enumerate(result.regions, start=1):
         print(f"  {i}. text={region.text!r}, box={region.box}, span={region.span}")
     print("Errors:", result.errors)
+
